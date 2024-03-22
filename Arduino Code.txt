@@ -1,0 +1,155 @@
+#define BLYNK_TEMPLATE_ID "TMPL3aGPrdCCK"
+#define BLYNK_TEMPLATE_NAME "Fish Automation System"
+#define BLYNK_AUTH_TOKEN "A-imlG9FhdhtzFwanVa9ESZ6UHcJCs1Y"
+
+#define BLYNK_PRINT Serial
+#include <ESP8266WiFi.h>  
+#include <BlynkSimpleEsp8266.h>
+#include <TimeLib.h>
+#include <Servo.h>
+
+//**************************** SERVO MOTOR ****************************
+Servo myServo;  
+unsigned long startTime;  
+bool rotateServo = false;  
+int rotationDuration = 0;  
+int servoPin=D4;
+
+//**************************** ULTRASONIC SENSOR ****************************
+#define TRIGPIN D2
+#define ECHOPIN D1
+float duration, distance;
+unsigned long conditionStartTime = 0;
+bool ledOn = false;
+int LENGTH = 0;
+//**************************** RGB LED ****************************
+int redpin=D8;
+int greenpin=D7;
+int bluepin = D6;
+
+//**************************** PHOTODIODE ****************************
+const int photodiodePin = A0;
+
+//INITIALISING BLYNK
+char auth[] = BLYNK_AUTH_TOKEN;
+char ssid[] = "LAVA Agni 2";  // Enter your Wifi Username
+char pass[] = "jrvvfamily";  // Enter your Wifi password
+
+
+
+void setup()
+{
+  Serial.begin(115200);
+  Blynk.begin(auth, ssid, pass);   
+  
+  
+  //**************************** SERVO MOTOR ****************************
+  myServo.attach(servoPin);
+  startTime = millis();
+
+  //**************************** RGB LED ****************************
+  pinMode(redpin, OUTPUT);
+  pinMode(greenpin, OUTPUT);
+  pinMode(bluepin, OUTPUT);
+  
+  //**************************** ULTRASONIC SENSOR ****************************
+  pinMode(ECHOPIN, INPUT);
+  pinMode(TRIGPIN, OUTPUT); 
+  setTime(0);
+}
+
+void photodiode_code(){
+  int photodiodeValue = analogRead(photodiodePin);
+  Blynk.virtualWrite(V6, photodiodeValue);
+}
+
+void servo_motor_code(){
+  if (rotateServo) {
+      unsigned long currentTime = millis();  // Get the current time
+      unsigned long elapsedTime = currentTime - startTime;  // Calculate elapsed time
+
+      if (elapsedTime < rotationDuration * 1000) {
+        // Rotate the servo motor clockwise at the desired speed (e.g., 1600 microseconds)
+        myServo.writeMicroseconds(1600); // Adjust the value for your desired speed
+      } else {
+        // Stop the servo
+        myServo.writeMicroseconds(1500); // Adjust the value for your servo to stop
+        rotateServo = false;  // Reset the flag to stop further rotation
+      }
+    }
+}
+
+void ultrasonic_sensor_code(){
+
+  digitalWrite(TRIGPIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIGPIN, HIGH);
+  delayMicroseconds(20);
+
+  digitalWrite(TRIGPIN, LOW);
+  duration = pulseIn(ECHOPIN, HIGH);
+
+  // Determine distance from duration
+  // Use 343 meters per second as the speed of sound
+  // Divide by 10000 as we want centimeters
+
+  distance = (duration / 2) * 0.0343;
+
+  Blynk.virtualWrite(V8, distance);
+  delay(100);
+}
+
+void loop()
+{
+  Blynk.run();
+  photodiode_code();
+  servo_motor_code();
+  ultrasonic_sensor_code();
+  // Get LENGTH from Blynk widget V7
+  Blynk.syncVirtual(V7);
+
+  if (distance > 20 && distance < LENGTH) {
+    if (!ledOn) {
+      if (conditionStartTime == 0) {
+        conditionStartTime = millis();
+      } else if (millis() - conditionStartTime >= 5000) {
+        Blynk.virtualWrite(V9, 255); // Turn on virtual LED (V9) after 5 seconds of continuous condition
+        ledOn = true;
+      }
+    }
+  } else {
+    conditionStartTime = 0; // Reset the condition timer
+    if (ledOn) {
+      Blynk.virtualWrite(V9, 0); // Turn off virtual LED (V9) when the condition is not met
+      ledOn = false;
+    }
+  }
+}
+
+BLYNK_WRITE(V0) {
+  int amt = param.asInt();
+  startTime = millis();  // Record the start time
+  rotationDuration = amt;  // Store the desired rotation duration
+  rotateClockwise = false;  // Set the flag to start rotating the servo
+}
+
+
+BLYNK_WRITE(V3)
+{
+  analogWrite(redpin, param.asInt());
+}
+BLYNK_WRITE(V4)
+{
+  analogWrite(greenpin, param.asInt());
+}
+BLYNK_WRITE(V5)
+{
+  analogWrite(bluepin, param.asInt());
+}
+BLYNK_WRITE(V6){
+  analogWrite(photodiodePin,param.asInt());
+}
+
+BLYNK_WRITE(V7) {
+  LENGTH = param.asInt(); // Update LENGTH when V7 value changes
+}
