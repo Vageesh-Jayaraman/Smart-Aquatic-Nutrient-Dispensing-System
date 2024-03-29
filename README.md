@@ -30,10 +30,10 @@ This project integrates with the Blynk IoT platform for mobile app connection, e
 ### Circuit Diagram
 <img width="721" alt="image" src="https://github.com/Vageesh-Jayaraman/Smart-Aquatic-Nutrient-Dispensing-System/assets/143870355/9f805412-e285-4623-8c5d-a0d7f1ce60a2">
 
-### Arduino Code and Working Video
-#### [Arduino Code](Arduino_Code.txt)
-#### [Working Video](Working_Video.mp4)
 
+### [Arduino Code](Arduino_Code.txt)
+### [Working Video](Working_Video.mp4)
+https://github.com/Vageesh-Jayaraman/Smart-Aquatic-Nutrient-Dispensing-System/assets/143870355/4a3d86ba-2a16-49ea-930f-095f6abf06dc
 
 
 
