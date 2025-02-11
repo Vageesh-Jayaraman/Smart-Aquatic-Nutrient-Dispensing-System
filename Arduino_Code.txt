@@ -32,8 +32,8 @@ const int photodiodePin = A0;
 
 //INITIALISING BLYNK
 char auth[] = BLYNK_AUTH_TOKEN;
-char ssid[] = "LAVA Agni 2";  // Enter your Wifi Username
-char pass[] = "jrvvfamily";  // Enter your Wifi password
+char ssid[] = Wifi_Username
+char pass[] = Wifi_password
 
 
 
@@ -65,16 +65,14 @@ void photodiode_code(){
 
 void servo_motor_code(){
   if (rotateServo) {
-      unsigned long currentTime = millis();  // Get the current time
-      unsigned long elapsedTime = currentTime - startTime;  // Calculate elapsed time
+      unsigned long currentTime = millis(); 
+      unsigned long elapsedTime = currentTime - startTime;  
 
       if (elapsedTime < rotationDuration * 1000) {
-        // Rotate the servo motor clockwise at the desired speed (e.g., 1600 microseconds)
-        myServo.writeMicroseconds(1600); // Adjust the value for your desired speed
+        myServo.writeMicroseconds(1600);
       } else {
-        // Stop the servo
-        myServo.writeMicroseconds(1500); // Adjust the value for your servo to stop
-        rotateServo = false;  // Reset the flag to stop further rotation
+        myServo.writeMicroseconds(1500); 
+        rotateServo = false;  
       }
     }
 }
@@ -89,10 +87,6 @@ void ultrasonic_sensor_code(){
   digitalWrite(TRIGPIN, LOW);
   duration = pulseIn(ECHOPIN, HIGH);
 
-  // Determine distance from duration
-  // Use 343 meters per second as the speed of sound
-  // Divide by 10000 as we want centimeters
-
   distance = (duration / 2) * 0.0343;
 
   Blynk.virtualWrite(V8, distance);
@@ -105,7 +99,6 @@ void loop()
   photodiode_code();
   servo_motor_code();
   ultrasonic_sensor_code();
-  // Get LENGTH from Blynk widget V7
   Blynk.syncVirtual(V7);
 
   if (distance > 20 && distance < LENGTH) {
@@ -113,14 +106,14 @@ void loop()
       if (conditionStartTime == 0) {
         conditionStartTime = millis();
       } else if (millis() - conditionStartTime >= 5000) {
-        Blynk.virtualWrite(V9, 255); // Turn on virtual LED (V9) after 5 seconds of continuous condition
+        Blynk.virtualWrite(V9, 255);
         ledOn = true;
       }
     }
   } else {
-    conditionStartTime = 0; // Reset the condition timer
+    conditionStartTime = 0;
     if (ledOn) {
-      Blynk.virtualWrite(V9, 0); // Turn off virtual LED (V9) when the condition is not met
+      Blynk.virtualWrite(V9, 0);
       ledOn = false;
     }
   }
@@ -128,9 +121,9 @@ void loop()
 
 BLYNK_WRITE(V0) {
   int amt = param.asInt();
-  startTime = millis();  // Record the start time
-  rotationDuration = amt;  // Store the desired rotation duration
-  rotateClockwise = false;  // Set the flag to start rotating the servo
+  startTime = millis();  
+  rotationDuration = amt;  
+  rotateClockwise = false; 
 }
 
 
@@ -151,5 +144,5 @@ BLYNK_WRITE(V6){
 }
 
 BLYNK_WRITE(V7) {
-  LENGTH = param.asInt(); // Update LENGTH when V7 value changes
+  LENGTH = param.asInt();
 }
